@@ -59,7 +59,9 @@ let onError: OnErrorFunc = (err) => {
     // do nothing
 }
 
-export const registerCallback = (onMailCallback: OnMailFunc, onErrorCallback: OnErrorFunc) => {
+export const registerCallback = (onMailCallback: OnMailFunc, onErrorCallback?: OnErrorFunc) => {
     onMail = onMailCallback;
-    onError = onErrorCallback;
+    if (onErrorCallback) {
+        onError = onErrorCallback;
+    }
 }

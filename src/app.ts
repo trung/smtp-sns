@@ -1,6 +1,15 @@
 import {logger} from "./logger";
-import {smtpServer} from "./smtp";
-import {port} from "./config";
+import {registerCallback, smtpServer} from "./smtp";
+import {port, snsTopicArn} from "./config";
+import {publishToSNS} from "./sns";
 
-logger.info(`Starting SMTP server on port ${port}`);
+registerCallback((mail, session) => {
+    publishToSNS(mail).then((data) => {
+        logger.info(`Published mail message ${mail.messageId} to SNS. SNS Message ID is ${data.MessageId}`);
+    }).catch((err) => {
+        logger.error(`Unable to publish to SNS: ${err}`)
+    });
+});
+
+logger.info(`Starting SMTP server on port ${port}, target SNS Topic: ${snsTopicArn}`);
 smtpServer.listen(port);

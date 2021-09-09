@@ -1,66 +1,31 @@
-import {createTransport} from "nodemailer";
-import {registerCallback, smtpServer} from "../smtp";
-import {Mutex} from "async-mutex";
+import {nodeEnv, port} from "../config";
 import {logger} from "../logger";
+import {createTransport} from "nodemailer";
 
-let port: number | undefined;
-
-beforeAll(async () => {
-    smtpServer.listen();
-    let address = smtpServer.server.address();
-    if (typeof address == "string") {
-        port = parseInt(address);
-    } else {
-        port = address?.port;
+let transporter = createTransport({
+    host: "localhost",
+    port: port,
+    secure: false,
+    requireTLS: false,
+    tls: {
+        rejectUnauthorized: false,
+    },
+    auth: {
+        user: "abc",
+        pass: "foo",
     }
-    logger.info(`Server started at port ${port}`);
 });
 
-afterAll(() => {
-   smtpServer.close();
-});
+const maybe = nodeEnv == "SAMPLE" ? test : test.skip;
 
-test("SMTP receives mail successfully", async () => {
-    const mutex = new Mutex();
-
-    let transporter = createTransport({
-        host: "localhost",
-        port: port,
-        secure: false,
-        requireTLS: false,
-        tls: {
-            rejectUnauthorized: false,
-        },
-        auth: {
-            user: "abc",
-            pass: "foo",
-        }
-    });
+maybe("Sending a sample mail", async () => {
     const arbitraryMailOptions = {
         from: "no-reply@example.com", // sender address
         to: "foo@example.com", // list of receivers
         subject: "Arbitrary subject", // Subject line
         html: "<b>Hello world?</b>", // html body
     };
-    let actualMail: any;
-    mutex.acquire().then((release) => {
-        registerCallback((mail, session) => {
-            actualMail = mail;
-            release();
-        }, (err) => {
-            release();
-        });
-    });
+    let result = await transporter.sendMail(arbitraryMailOptions);
 
-    let info = await transporter.sendMail(arbitraryMailOptions);
-
-    await mutex.waitForUnlock();
-
-    expect(info).not.toBeUndefined();
-    expect(actualMail.from?.text).toEqual(arbitraryMailOptions.from);
-    const to = Array.isArray(actualMail.to) ? actualMail.to[0]?.text : actualMail.to?.text;
-    expect(to).toEqual(arbitraryMailOptions.to);
-    expect(actualMail.subject).toEqual(arbitraryMailOptions.subject);
-    expect(actualMail.html.trim()).toEqual(arbitraryMailOptions.html.trim());
+    logger.info(`Mail sent. ID: ${result.messageId}`);
 });
-
