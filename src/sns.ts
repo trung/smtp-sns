@@ -1,8 +1,15 @@
-import {AWSError, SNS } from "aws-sdk";
+import {AWSError, config, EC2MetadataCredentials, SNS } from "aws-sdk";
 import { PromiseResult } from "aws-sdk/lib/request";
 import {ParsedMail} from "mailparser";
-import {snsSubscriptionFilterAttribute, snsTopicArn} from "./config";
+import {snsSubscriptionFilterAttribute, snsTopicArn, useEC2InstanceProfile} from "./config";
 import {logger} from "./logger";
+
+if (useEC2InstanceProfile) {
+    config.credentials = new EC2MetadataCredentials({
+        httpOptions: { timeout: 5000 }, // 5 second timeout
+        maxRetries: 10, // retry 10 times
+    });
+}
 
 const snsPublisher = new SNS();
 

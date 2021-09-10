@@ -4,7 +4,7 @@
   "description": "",
   "main": "build/app.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --build --clean && tsc",
     "build:watch": "tsc --watch",
     "test": "jest",
     "start": "node -r dotenv/config ."

@@ -1,5 +1,5 @@
-import {nodeEnv, port} from "../config";
-import {logger} from "../logger";
+import {port} from "./config";
+import {logger} from "./logger";
 import {createTransport} from "nodemailer";
 
 let transporter = createTransport({
@@ -16,9 +16,7 @@ let transporter = createTransport({
     }
 });
 
-const maybe = nodeEnv == "SAMPLE" ? test : test.skip;
-
-maybe("Sending a sample mail", async () => {
+async function main() {
     const arbitraryMailOptions = {
         from: "no-reply@example.com", // sender address
         to: "foo@example.com", // list of receivers
@@ -28,4 +26,6 @@ maybe("Sending a sample mail", async () => {
     let result = await transporter.sendMail(arbitraryMailOptions);
 
     logger.info(`Mail sent. ID: ${result.messageId}`);
-});
+}
+
+main().catch(console.error);
