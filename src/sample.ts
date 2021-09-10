@@ -19,7 +19,7 @@ let transporter = createTransport({
 async function main() {
     const arbitraryMailOptions = {
         from: "no-reply@example.com", // sender address
-        to: "foo@example.com", // list of receivers
+        to: process.env.TO || "foo@example.com", // list of receivers
         subject: "Arbitrary subject", // Subject line
         html: "<b>Hello world?</b>", // html body
     };

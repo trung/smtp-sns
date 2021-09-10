@@ -10,21 +10,22 @@ if (useEC2InstanceProfile) {
         maxRetries: 10, // retry 10 times
     });
 }
+config.logger = console
 
 const snsPublisher = new SNS();
 
 export async function publishToSNS(mail: ParsedMail): Promise<PromiseResult<SNS.PublishResponse, AWSError>> {
     const to = Array.isArray(mail.to) ? mail.to[0]?.text : mail.to?.text;
     logger.info(`Publishing ${mail.messageId} to ${snsTopicArn} with attribute ${snsSubscriptionFilterAttribute}=${to}`);
+    const ma:any = {};
+    ma[snsSubscriptionFilterAttribute] = {
+            DataType: "String",
+            StringValue: to,
+    };
     return snsPublisher.publish({
         Subject: mail.subject || "unknown",
         Message: mail.html || mail.text || "unknown",
         TopicArn: snsTopicArn,
-        MessageAttributes: {
-            snsSubscriptionFilterAttribute: {
-                DataType: "String",
-                StringValue: to,
-            }
-        },
+        MessageAttributes: ma as SNS.MessageAttributeMap,
     }).promise();
 }
