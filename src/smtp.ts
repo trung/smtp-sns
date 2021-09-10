@@ -29,7 +29,10 @@ export const smtpServer = new SMTPServer({
     onData(stream: SMTPServerDataStream, session: SMTPServerSession, callback: (err?: (Error | null)) => void) {
         simpleParser(stream)
             .then(mail => {
-                logger.info(`ID: ${mail.messageId}, From: ${mail.from?.text}, To: ${Array.isArray(mail.to) ? mail.to[0]?.text : mail.to?.text}, Subject: ${mail.subject}, Body: ${mail.html}`);
+                logger.info(`${mail.messageId}:    From: ${mail.from?.text}`);
+                logger.info(`${mail.messageId}:      To: ${Array.isArray(mail.to) ? mail.to[0]?.text : mail.to?.text}`);
+                logger.info(`${mail.messageId}: Subject: ${mail.subject}`);
+                logger.info(`${mail.messageId}:    Body: ${mail.html || mail.text}`);
                 onMail(mail, session);
             })
             .catch(err => {
